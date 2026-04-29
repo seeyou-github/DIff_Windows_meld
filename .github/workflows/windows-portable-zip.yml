@@ -56,7 +56,7 @@ jobs:
             nested_root="$(find "${install_root}" -type d -path '*/lib/python3.*' -print -quit | sed 's#/lib/python3\..*##')"
             if [ -n "${nested_root}" ] && [ -d "${nested_root}" ]; then
               cp -a "${nested_root}/lib" "${install_root}/"
-              cp -a "${nested_root}/share" "${install_root}/"
+              cp -aL "${nested_root}/share" "${install_root}/"
             fi
           fi
           cp windows/meld.spec "${install_root}/"
