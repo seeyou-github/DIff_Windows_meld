@@ -1,0 +1,65 @@
+name: Build Windows x64 Portable ZIP
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build-windows-portable:
+    runs-on: windows-latest
+
+    defaults:
+      run:
+        shell: msys2 {0}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup MSYS2 (MINGW64)
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW64
+          update: true
+          install: >-
+            mingw-w64-x86_64-adwaita-icon-theme
+            mingw-w64-x86_64-appstream
+            mingw-w64-x86_64-desktop-file-utils
+            mingw-w64-x86_64-gettext
+            mingw-w64-x86_64-gsettings-desktop-schemas
+            mingw-w64-x86_64-gtk-update-icon-cache
+            mingw-w64-x86_64-gtk3
+            mingw-w64-x86_64-gtksourceview4
+            mingw-w64-x86_64-itstool
+            mingw-w64-x86_64-meson
+            mingw-w64-x86_64-pyinstaller
+            mingw-w64-x86_64-python-gobject
+            mingw-w64-x86_64-python-lxml
+            mingw-w64-x86_64-python-markupsafe
+            mingw-w64-x86_64-python-pip
+            mingw-w64-x86_64-python-pyaml
+            mingw-w64-x86_64-python-setuptools
+            glib2-devel
+            intltool
+            zip
+
+      - name: Install Python build dependency
+        run: pip install pyinstaller-versionfile packaging
+
+      - name: Build and package portable folder
+        run: |
+          meson setup --prefix=/ . meson-build/
+          meson compile -v -C meson-build/
+          meson install -C meson-build/ --destdir=pyinstaller-build/
+          cp windows/meld.spec meson-build/pyinstaller-build
+          cd meson-build/pyinstaller-build
+          pyinstaller ./meld.spec
+          cd dist
+          mv meld Meld
+          zip -r "Meld-windows-x64-portable.zip" Meld
+
+      - name: Upload portable zip
+        uses: actions/upload-artifact@v4
+        with:
+          name: Meld-windows-x64-portable
+          path: meson-build/pyinstaller-build/dist/Meld-windows-x64-portable.zip
+          if-no-files-found: error
