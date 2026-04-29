@@ -48,6 +48,7 @@ jobs:
 
       - name: Build and package portable folder
         run: |
+          set -euo pipefail
           meson setup --prefix=/ . meson-build/
           meson compile -v -C meson-build/
           meson install -C meson-build/ --destdir=pyinstaller-build/
@@ -57,12 +58,18 @@ jobs:
             echo "Failed to locate runtime root under ${install_root}"
             exit 1
           fi
-          rm -rf "${install_root}/lib" "${install_root}/share"
-          cp -R "${runtime_root}/lib" "${install_root}/"
+          echo "runtime_root=${runtime_root}"
+          rm -rf "${install_root}/bin" "${install_root}/lib" "${install_root}/share"
+          cp -R -L "${runtime_root}/bin" "${install_root}/"
+          cp -R -L "${runtime_root}/lib" "${install_root}/"
           cp -R -L "${runtime_root}/share" "${install_root}/"
+          test -f "${install_root}/bin/meld"
+          find "${install_root}/lib" -maxdepth 2 -type d -name "python3.*" | head -n 1
+          test -d "${install_root}/share"
           cp windows/meld.spec "${install_root}/"
           cd "${install_root}"
           pyinstaller ./meld.spec
+          test -d dist/meld
           cd dist
           mv meld Meld
           zip -r "Meld-windows-x64-portable.zip" Meld
