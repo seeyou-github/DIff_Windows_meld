@@ -41,6 +41,7 @@ jobs:
             glib2-devel
             intltool
             zip
+            git
 
       - name: Install Python build dependency
         run: pip install pyinstaller-versionfile packaging
