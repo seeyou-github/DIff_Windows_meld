@@ -57,8 +57,11 @@ jobs:
             echo "Failed to locate runtime root under ${install_root}"
             exit 1
           fi
-          cp windows/meld.spec "${runtime_root}/"
-          cd "${runtime_root}"
+          rm -rf "${install_root}/lib" "${install_root}/share"
+          cp -R "${runtime_root}/lib" "${install_root}/"
+          cp -R -L "${runtime_root}/share" "${install_root}/"
+          cp windows/meld.spec "${install_root}/"
+          cd "${install_root}"
           pyinstaller ./meld.spec
           cd dist
           mv meld Meld
@@ -68,5 +71,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: Meld-windows-x64-portable
-          path: meson-build/pyinstaller-build/**/dist/Meld-windows-x64-portable.zip
+          path: meson-build/pyinstaller-build/dist/Meld-windows-x64-portable.zip
           if-no-files-found: error
